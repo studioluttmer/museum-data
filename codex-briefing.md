@@ -43,7 +43,7 @@ Een persoonlijke app (mobielvriendelijke web-app, later eventueel als app op de 
       "beschrijving": "...",
       "verhaal_kunstenaar": "Kort verhaal over wat de kunstenaar bijzonder maakt.",
       "tags": ["hedendaags", "installatie"],
-      "fotos": [ { "url": "https://...", "bijschrift": "Titel werk, jaar" } ],
+      "fotos": [ { "url": "https://...", "bijschrift": "Titel werk, jaar", "bron": "https://...", "credit": "...", "breedte": 1920, "hoogte": 1280 } ],
       "voorbeeldwerken": [ { "titel": "...", "jaar": "..." } ],
       "museumkaart_toeslag": { "toeslag": true, "bedrag_eur": 5, "toelichting": "..." },
       "reserveren": {
@@ -84,3 +84,42 @@ Velden kunnen ontbreken als de informatie niet bekend is; de app moet daar netje
 - Simpel te hosten (bijvoorbeeld als statische web-app via GitHub Pages of Vercel).
 - Data alleen ophalen bij openen of verversen; geen eigen scraping.
 - Houd het id-veld van tentoonstellingen aan als vaste sleutel om cijfers te koppelen.
+
+## Foto's: `fotos` en `fotos_overzicht` (toegevoegd 27-10-2026)
+
+Er zijn alleen velden **toegevoegd**; niets is hernoemd of verwijderd. Bestaande foto's staan nog steeds vooraan in `fotos`.
+
+**Per tentoonstelling:** `tentoonstellingen[].fotos` bevat maximaal 6 foto's die bij die tentoonstelling horen. Het veld ontbreekt als er geen geverifieerde foto is.
+```json
+"fotos": [ {
+  "url": "https://...",            // werkende URL, gecontroleerd op HTTP 200 en image/*
+  "bijschrift": "...",             // optioneel (bestond al)
+  "beschrijving": "...",           // optioneel: alt-tekst of omschrijving van de bron
+  "bron": "https://...",           // pagina waar de foto vandaan komt (museumsite, museum.nl of Commons-bestandspagina)
+  "credit": "museum.nl / Kunsthal KAdE",   // naamsvermelding; bij Commons: "maker, licentie, via Wikimedia Commons"
+  "breedte": 1920, "hoogte": 1280  // werkelijke pixelmaten van de URL
+} ]
+```
+
+**Per museum:** `musea[].fotos_overzicht` is een kant-en-klare, geordende lijst met minstens 6 foto's (als die er zijn) voor de museumkaart in de app:
+```json
+"fotos_overzicht": [ {
+  "url": "https://...",
+  "tentoonstelling_id": "kade-frankenthaler-judd",   // of null = collectie/gebouw
+  "bron": "https://...", "credit": "...", "beschrijving": "...",
+  "breedte": 1600, "hoogte": 1067
+} ]
+```
+Lege velden (`beschrijving`, `bron`) worden weggelaten. `tentoonstelling_id` staat er altijd, ook als het `null` is.
+
+**Fotoregel (verdeling in `fotos_overzicht`):**
+- Telt mee: tentoonstellingen met status "lopend" of "nieuw". Heeft een museum die niet, dan tellen de "binnenkort"-tentoonstellingen mee. Volgorde: nieuw/lopend eerst, dan op startdatum.
+- 1 tentoonstelling: 6 foto's van die tentoonstelling. 2: 3 + 3. 3: 2 + 2 + 2.
+- 4 tot 6: minstens 1 per tentoonstelling, de rest van de 6 plekken om de beurt verdeeld (4 → 2, 2, 1, 1; 5 → 2, 1, 1, 1, 1).
+- Meer dan 6: 1 per tentoonstelling. De lijst is dan langer dan 6; toon er 6 of laat de gebruiker bladeren.
+- Te weinig foto's van een tentoonstelling: de plekken gaan om de beurt naar tentoonstellingen die nog foto's over hebben. Lukt dat niet, dan wordt aangevuld met collectie- of gebouwfoto's (`tentoonstelling_id: null`).
+- Geen tentoonstelling: 6 foto's van collectie of gebouw, uit museum.nl (impressies, pronkstukken), de eigen museumsite of Wikimedia Commons (met maker en licentie).
+- Volgorde in de lijst: per tentoonstelling gegroepeerd, daarna collectie en gebouw.
+- Kwaliteit: alleen geverifieerde URL's, minimaal 800 px breed (600 px als er niets beters is), foto's van 1200 px of breder eerst. Geen logo's, iconen, placeholders of tekstposters als er iets beters is. Dubbele foto's worden eruit gehaald (zelfde URL, zelfde bestandsnaam of bijna-identiek beeld).
+- Sommige musea hebben minder dan 6 foto's. Dan was er online niet meer bruikbaar beeld te vinden; ze zijn niet aangevuld met verzonnen of ongeschikte URL's.
+- **App:** gebruik `fotos_overzicht` voor de museumkaart en `fotos` in de tentoonstellingsdetails. Toon `credit` klein bij de foto. Laad foto's lazy, want het zijn grote bestanden; schaal ze in de app.
