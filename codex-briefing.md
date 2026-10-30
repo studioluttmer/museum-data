@@ -51,7 +51,9 @@ Een persoonlijke app (mobielvriendelijke web-app, later eventueel als app op de 
         "drukte": "druk",
         "ticket_url": "https://...",
         "gecontroleerd_op": "2026-10-30T09:00:00+01:00",
-        "eerste_vrije_tijdslot": [ { "datum": "2026-10-31", "tijd": "11:30" } ]
+        "eerste_vrije_tijdslot": [ { "datum": "2026-10-31", "tijd": "11:30" } ],
+        "beschikbaarheid": "ticketshop niet uitleesbaar ...",   // (sinds 30-10-2026) tekst: resultaat van de laatste slotcontrole, of waarom die niet lukte
+        "weekenden_gecontroleerd": [ "31 okt/1 nov", "7–8 nov" ]  // (sinds 30-10-2026) welke weekenden bij die controle bekeken zijn
       },
       "recensies": [
         { "medium": "NRC", "recensent": "...", "sterren": 4, "max_sterren": 5,
